@@ -28,31 +28,35 @@ export const EmbedDashboard: React.FC<any> = ({id, filters, setFilters, DONT_HID
 
   const hideAll = () => {
     if (options && dashboard && fields) {
-      const new_element = JSON.parse(JSON.stringify(options.elements[element.id]))
-      const query_fields = element.query.fields
-      let hidden_fields: string[] = []
-      let unhide_fields: string[] = []
-      if (filters && filters[FILTER_LABEL_FOR_HIDING]) {
-        filters[FILTER_LABEL_FOR_HIDING].split(',').forEach((label: string)=>{
-          const found = find(fields, {label_short: label})
-          if (found) {
-            unhide_fields.push(found.name)
+      if (options.elements[element.id]) {
+        const new_element = JSON.parse(JSON.stringify(options.elements[element.id]))
+        const query_fields = element.query.fields
+        let hidden_fields: string[] = []
+        let unhide_fields: string[] = []
+        let column_order: string[] = ['$$$_row_numbers_$$$'].concat(DONT_HIDE)
+        if (filters && filters[FILTER_LABEL_FOR_HIDING]) {
+          filters[FILTER_LABEL_FOR_HIDING].split(',').forEach((label: string)=>{
+            const found = find(fields, {label: label}) || find(fields, {label_short: label})
+            if (found) {
+              unhide_fields.push(found.name)
+              column_order.push(found.name)
+            }
+          })
+        }
+        query_fields.forEach((f: string)=>{
+          if (DONT_HIDE.indexOf(f) === -1 && unhide_fields.indexOf(f) === -1 ) {
+            hidden_fields.push(f)
           }
         })
-      }
-      query_fields.forEach((f: string)=>{
-        if (DONT_HIDE.indexOf(f) === -1 && unhide_fields.indexOf(f) === -1 ) {
-          hidden_fields.push(f)
+        new_element.vis_config['hidden_fields'] = hidden_fields
+        new_element.vis_config['column_order'] = column_order
+        const obj = {elements: { ...options.elements, [element.id]: new_element }}
+  
+        if (dashboard) {
+          dashboard.setOptions(obj)
         }
-      })
-      new_element.vis_config['hidden_fields'] = hidden_fields
-      const obj = {elements: { ...options.elements, [element.id]: new_element }}
-
-      if (dashboard) {
-        dashboard.setOptions(obj)
-      }
+      }    
     }
-
   }
 
   const setupDashboard = (dashboard: LookerEmbedDashboard) => {
@@ -61,7 +65,7 @@ export const EmbedDashboard: React.FC<any> = ({id, filters, setFilters, DONT_HID
 
   const filterChange = (e: any) => {
     const new_filters = e?.dashboard?.dashboard_filters
-    extension_host.localStorageSetItem("filters", JSON.stringify(new_filters))
+    extension_host.localStorageSetItem(`filters/${id}`, JSON.stringify(new_filters))
     setFilters(new_filters)
   }
 
