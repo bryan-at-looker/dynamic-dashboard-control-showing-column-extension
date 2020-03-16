@@ -6,7 +6,7 @@ import { Main } from "./Main"
 import { Redirect, Switch, Route } from "react-router-dom"
 import { PickDashboard } from "./PickDashboard"
 
-const AVAILABLE_DASHBOARDS = ['24','30','31','25','27', '26', '29']
+const AVAILABLE_DASHBOARDS = ['24','30','31','25','27', '26', '29','33']
 const FILTER_LABEL_FOR_HIDING = 'Fields'
 
 export const App: React.FC<any> = () => {
